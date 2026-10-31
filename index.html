@@ -1146,12 +1146,11 @@
         <div class="section-head">
           <h2 id="quote-title" tabindex="-1">Get a Quote</h2>
         </div>
-        <form class="quote-form" id="quote-form" action="https://formsubmit.co/charleswest.202@gmail.com" method="POST" data-ajax="https://formsubmit.co/ajax/charleswest.202@gmail.com">
-          <input type="hidden" name="_subject" value="Haul It All DMV quote request" />
-          <input type="hidden" name="_template" value="table" />
-          <input type="hidden" name="_captcha" value="false" />
-          <!-- spam trap: hidden from people; bots that fill it are dropped by FormSubmit -->
-          <div class="quote-trap" aria-hidden="true"><label for="q-honey">Leave this empty</label><input type="text" id="q-honey" name="_honey" tabindex="-1" autocomplete="off" /></div>
+        <form class="quote-form" id="quote-form" action="https://api.web3forms.com/submit" method="POST" data-ajax="https://api.web3forms.com/submit">
+          <input type="hidden" name="access_key" value="e63a8fde-fa67-4e77-b3e5-918addd4f96d" />
+          <input type="hidden" name="subject" value="Haul It All DMV quote request" />
+          <!-- spam trap: hidden from people; bots that tick it are dropped by Web3Forms -->
+          <div class="quote-trap" aria-hidden="true"><label for="q-botcheck">Leave this empty</label><input type="checkbox" id="q-botcheck" name="botcheck" tabindex="-1" style="display: none;" /></div>
           <div class="quote-row">
             <div class="quote-field">
               <label for="q-name">Name</label>
@@ -1237,7 +1236,7 @@
 
     (function () {
       /* Quote form: every Get a Quote and Request this size button jumps here;
-         Request this size fills in its size. Sent to FormSubmit without leaving the page. */
+         Request this size fills in its size. Sent to Web3Forms without leaving the page. */
       var form = document.getElementById('quote-form');
       var need = document.getElementById('q-need');
       var title = document.getElementById('quote-title');
@@ -1271,10 +1270,10 @@
         send.disabled = true;
         send.textContent = 'Sending…';
         error.hidden = true;
-        fetch(form.getAttribute('data-ajax'), { method: 'POST', headers: { Accept: 'application/json' }, body: data })
+        fetch(form.getAttribute('data-ajax'), { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(Object.fromEntries(data)) })
           .then(function (r) { return r.json(); })
           .then(function (j) {
-            if (String(j.success) !== 'true') throw new Error(j.message || 'not sent');
+            if (!j || j.success !== true) throw new Error((j && j.message) || 'not sent');
             form.hidden = true;
             done.hidden = false;
             done.focus();
