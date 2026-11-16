@@ -829,6 +829,25 @@
     .foot-links { display: inline-flex; gap: 20px; flex-wrap: wrap; }
     /* v6.0, updated v6.2 — the four job photos are the whole gallery: 2 by 2 at every width (was 4 across from 1024px); the grid fills the content column, left edge on the heading */
     @media (min-width: 1024px) { .photo-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    /* Go-live: photo-text button is outlined (white, red border and text); hover fills red like .button[data-quote] */
+    /* Photo-text button: same look as .button; the two blocks fade in once on screen (start state only after JS adds .hia-js) */
+    .hia-photo-text { margin-top: 28px; }
+    .quote .hia-photo-text { max-width: 640px; }
+    .photo-slots + .hia-photo-text { text-align: center; }
+    .hia-photo-text p { margin: 8px 0 0; font-size: .95rem; color: var(--muted); }
+    .quote .hia-photo-text p { color: var(--on-dark); }
+    .hia-photo-btn { min-height: 52px; display: inline-flex; align-items: center; justify-content: center; padding: 13px 22px; border: 2px solid var(--red); background: #fff; color: var(--red); text-decoration: none; font-weight: 800; white-space: nowrap; transition: background-color .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+    .hia-photo-btn:hover, .hia-photo-btn:focus-visible { background: var(--red); border-color: var(--red); color: #fff; }
+    @media (max-width: 700px) { .hia-photo-btn { display: flex; width: 100%; } }
+    @media (hover: hover) { .hia-photo-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(21, 23, 26, .28); } }
+    .hia-js .hia-photo-text { opacity: 0; transform: translateY(8px); transition: opacity .3s ease, transform .3s ease; }
+    .hia-js .hia-photo-text.hia-in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .hia-js .hia-photo-text { opacity: 1; transform: none; transition: none; }
+      .hia-photo-btn, .hia-photo-btn:hover { transform: none; box-shadow: none; transition: none; }
+    }
+    /* Photo-text button and its two lines: phones and touch screens only (hover: none and pointer: coarse); hidden on computers */
+    @media not all and (hover: none) and (pointer: coarse) { .hia-photo-text { display: none; } }
   </style>
 </head>
 <body id="top">
@@ -1063,6 +1082,11 @@
             </picture>
           </figure>
         </div>
+        <div class="hia-photo-text">
+          <a class="hia-photo-btn" href="sms:+12402572606">Text us a photo</a>
+          <p>We'll text you back with a quote.</p>
+          <p>Send a photo plus your ZIP, what's going, and your name.</p>
+        </div>
       </div>
     </section>
 
@@ -1172,6 +1196,11 @@
           <button class="button quote-send" type="submit">Send my request</button>
           <p class="quote-error" id="quote-error" role="alert" hidden>Sorry, that didn't send. Please call 202-450-5589.</p>
         </form>
+        <div class="hia-photo-text">
+          <a class="hia-photo-btn" href="sms:+12402572606">Text us a photo</a>
+          <p>We'll text you back with a quote.</p>
+          <p>Send a photo plus your ZIP, what's going, and your name.</p>
+        </div>
         <div class="quote-done" id="quote-done" role="status" tabindex="-1" hidden>
           <p>Got it. We'll call you shortly. Need it fast? Call 202-450-5589.</p>
           <div class="actions"><a class="button" href="tel:2024505589">Call 202-450-5589</a></div>
@@ -1284,6 +1313,31 @@
             error.hidden = false;
           });
       });
+    }());
+
+    (function () {
+      /* Photo-text blocks: fade in once each is on screen. No observer or reduced motion: they simply show. */
+      var blocks = document.querySelectorAll('.hia-photo-text');
+      if (!blocks.length || !('IntersectionObserver' in window)) return;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      document.documentElement.classList.add('hia-js');
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add('hia-in'); io.unobserve(e.target); }
+        });
+      });
+      for (var i = 0; i < blocks.length; i++) io.observe(blocks[i]);
+    }());
+
+    (function () {
+      /* Go-live: when the form's success message ("Got it. We'll call you shortly.") appears, hide the photo-text block under the form */
+      var done = document.getElementById('quote-done');
+      var block = document.querySelector('#quote .hia-photo-text');
+      if (!done || !block) return;
+      function check() { if (!done.hidden) { block.style.display = 'none'; if (mo) mo.disconnect(); } }
+      var mo = ('MutationObserver' in window) ? new MutationObserver(check) : null;
+      if (mo) mo.observe(done, { attributes: true, attributeFilter: ['hidden'] });
+      check();
     }());
   </script>
 </body>
